@@ -23,8 +23,13 @@ class UserInfo:
 
 @dataclass
 class Command:
-    keywords: Tuple[str, ...]
     func: Callable
+    keywords: Tuple[str, ...]
+    pattern: str = ""
+
+    def __post_init__(self):
+        if not self.pattern:
+            self.pattern = "|".join(self.keywords)
 
 
 def save_gif(frames: List[IMG], duration: float) -> BytesIO:

@@ -1,16 +1,16 @@
 from io import BytesIO
 from typing import Union
+
 from nonebot.params import Depends
 from nonebot.matcher import Matcher
 from nonebot.typing import T_Handler
-from nonebot import on_command, require
+from nonebot import on_command, require, on_message
 from nonebot.adapters.onebot.v11 import MessageSegment
 from configs.path_config import IMAGE_PATH
-
 require("nonebot_plugin_imageutils")
 
-from .depends import split_msg
 from .data_source import commands
+from .depends import split_msg, regex
 from .utils import Command, help_image
 
 __zx_plugin_name__ = "头像表情包"
@@ -27,7 +27,7 @@ usage：
 __plugin_des__ = "生成各种表情"
 __plugin_type__ = ("群内小游戏",)
 __plugin_cmd__ = ["头像表情包", "头像相关表情包", "头像相关表情制作"]
-__plugin_version__ = 0.2
+__plugin_version__ = 0.3
 __plugin_author__ = "MeetWq"
 __plugin_settings__ = {
     "level": 5,
@@ -51,7 +51,7 @@ async def _():
 def create_matchers():
     def handler(command: Command) -> T_Handler:
         async def handle(
-                matcher: Matcher, res: Union[str, BytesIO] = Depends(command.func)
+            matcher: Matcher, res: Union[str, BytesIO] = Depends(command.func)
         ):
             if isinstance(res, str):
                 await matcher.finish(res)
@@ -60,11 +60,10 @@ def create_matchers():
         return handle
 
     for command in commands:
-        on_command(
-            command.keywords[0],
-            aliases=set(command.keywords),
+        on_message(
+            regex(command.pattern),
             block=True,
-            priority=5,
+            priority=12,
         ).append_handler(handler(command), parameterless=[split_msg()])
 
 
