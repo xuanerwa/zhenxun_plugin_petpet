@@ -27,7 +27,7 @@ usage：
 __plugin_des__ = "生成各种表情"
 __plugin_type__ = ("群内小游戏",)
 __plugin_cmd__ = ["头像表情包", "头像相关表情包", "头像相关表情制作"]
-__plugin_version__ = 0.3
+__plugin_version__ = 0.4
 __plugin_author__ = "MeetWq"
 __plugin_settings__ = {
     "level": 5,
