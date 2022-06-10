@@ -63,7 +63,7 @@ def create_matchers():
         on_message(
             regex(command.pattern),
             block=True,
-            priority=12,
+            priority=5,
         ).append_handler(handler(command), parameterless=[split_msg()])
 
 
