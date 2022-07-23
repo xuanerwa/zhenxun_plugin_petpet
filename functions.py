@@ -1,10 +1,11 @@
 import random
 from datetime import datetime
 from collections import namedtuple
-from PIL import Image, ImageFilter
+from PIL import Image, ImageFilter, ImageDraw
 from PIL.Image import Image as IMG
 from typing import List, Dict, Optional
 
+from nonebot_plugin_imageutils.fonts import Font
 from nonebot_plugin_imageutils import BuildImage, Text2Image
 
 from .download import load_image
@@ -246,7 +247,9 @@ def always(img: BuildImage = UserImg(), arg=NoArg()):
         h1 = img_big.height
         h2 = max(img_small.height, 80)
         frame = BuildImage.new("RGBA", (500, h1 + h2 + 10), "white")
-        frame.paste(img_big, alpha=True).paste(img_small, (290, h1 + 5), alpha=True)
+        frame.paste(img_big, alpha=True).paste(
+            img_small, (290, h1 + 5 + (h2 - img_small.height) // 2), alpha=True
+        )
         frame.draw_text(
             (20, h1 + 5, 280, h1 + h2 + 5), "要我一直", halign="right", max_fontsize=60
         )
@@ -262,7 +265,7 @@ def loading(img: BuildImage = UserImg(), arg=NoArg()):
     img_big = img.convert("RGBA").resize_width(500)
     img_big = img_big.filter(ImageFilter.GaussianBlur(radius=3))
     h1 = img_big.height
-    mask = BuildImage.new("RGBA", img_big.size, (0, 0, 0, 128))
+    mask = BuildImage.new("RGBA", img_big.size, (0, 0, 0, 64))
     icon = load_image("loading/icon.png")
     img_big.paste(mask, alpha=True).paste(icon, (200, int(h1 / 2) - 50), alpha=True)
 
@@ -270,7 +273,9 @@ def loading(img: BuildImage = UserImg(), arg=NoArg()):
         img_small = img.resize_width(100)
         h2 = max(img_small.height, 80)
         frame = BuildImage.new("RGBA", (500, h1 + h2 + 10), "white")
-        frame.paste(img_big, alpha=True).paste(img_small, (100, h1 + 5), alpha=True)
+        frame.paste(img_big, alpha=True).paste(
+            img_small, (100, h1 + 5 + (h2 - img_small.height) // 2), alpha=True
+        )
         frame.draw_text(
             (210, h1 + 5, 480, h1 + h2 + 5), "不出来", halign="left", max_fontsize=60
         )
@@ -1225,7 +1230,7 @@ def marriage(img: BuildImage = UserImg(), arg=NoArg()):
 
 
 def painter(img: BuildImage = UserImg(), arg=NoArg()):
-    img = img.convert("RGBA").resize((240, 345), keep_ratio=True)
+    img = img.convert("RGBA").resize((240, 345), keep_ratio=True, direction="north")
     frame = load_image("painter/0.png")
     frame.paste(img, (125, 91), below=True)
     return frame.save_jpg()
@@ -1270,3 +1275,37 @@ def repeat(
         frames.append(frame.image)
 
     return save_gif(frames, 0.08)
+
+
+def anti_kidnap(img: BuildImage = UserImg(), arg=NoArg()):
+    img = img.convert("RGBA").circle().resize((450, 450))
+    bg = load_image("anti_kidnap/0.png")
+    frame = BuildImage.new("RGBA", bg.size, "white")
+    frame.paste(img, (30, 78))
+    frame.paste(bg, alpha=True)
+    return frame.save_jpg()
+
+
+def charpic(img: BuildImage = UserImg(), arg=NoArg()):
+    str_map = "@@$$&B88QMMGW##EE93SPPDOOU**==()+^,\"--''.  "
+    num = len(str_map)
+    font = Font.find("Consolas").load_font(15)
+
+    def make(img: BuildImage) -> BuildImage:
+        img = img.convert("L").resize_width(150)
+        img = img.resize((img.width, img.height // 2))
+        lines = []
+        for y in range(img.height):
+            line = ""
+            for x in range(img.width):
+                gray = img.image.getpixel((x, y))
+                line += str_map[int(num * gray / 256)]
+            lines.append(line)
+        text = "\n".join(lines)
+        w, h = font.getsize_multiline(text)
+        text_img = Image.new("RGB", (w, h), "white")
+        draw = ImageDraw.Draw(text_img)
+        draw.multiline_text((0, 0), text, font=font, fill="black")
+        return BuildImage(text_img)
+
+    return make_jpg_or_gif(img, make)

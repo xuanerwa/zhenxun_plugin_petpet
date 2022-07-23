@@ -2,13 +2,14 @@ import json
 from utils.http_utils import AsyncHttpx
 import hashlib
 import asyncio
-from configs.path_config import IMAGE_PATH
+from configs.path_config import DATA_PATH
 from nonebot.log import logger
 from nonebot import get_driver
 
 from nonebot_plugin_imageutils import BuildImage
+from nonebot_plugin_imageutils.fonts import add_font
 
-data_path = IMAGE_PATH / "petpet"
+data_path = DATA_PATH / "petpet"
 
 
 def load_image(path: str) -> BuildImage:
@@ -35,9 +36,12 @@ async def download_avatar(user_id: str) -> bytes:
     return data
 
 
+def resource_url(path: str) -> str:
+    return f"https://ghproxy.com/https://raw.githubusercontent.com/noneplugin/nonebot-plugin-petpet/v0.3.x/resources/{path}"
+
+
 async def download_resource(path: str) -> bytes:
-    url = f"https://ghproxy.com/https://raw.githubusercontent.com/noneplugin/nonebot-plugin-petpet/v0.3.x/resources/{path}"
-    return await download_url(url)
+    return await download_url(resource_url(path))
 
 
 async def check_resources():
@@ -61,6 +65,10 @@ async def check_resources():
                 f.write(data)
         except Exception as e:
             logger.warning(str(e))
+    font_path_ttf = data_path / 'fonts' / 'consola.ttf'
+    if not font_path_ttf.exists():
+        await AsyncHttpx.download_file(resource_url("fonts/consola.ttf"), data_path / 'fonts', stream=True)
+    await add_font("consola.ttf", font_path_ttf)
 
 
 driver = get_driver()
