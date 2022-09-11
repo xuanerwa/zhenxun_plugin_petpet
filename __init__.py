@@ -1,5 +1,6 @@
 import math
 from io import BytesIO
+from PIL.Image import Image as IMG
 from typing import List, Union
 from nonebot.params import Depends
 from nonebot.utils import run_sync
@@ -35,7 +36,7 @@ usage：
 __plugin_des__ = "生成各种表情"
 __plugin_type__ = ("群内小游戏",)
 __plugin_cmd__ = ["头像表情包", "头像相关表情包", "头像相关表情制作"]
-__plugin_version__ = 0.5
+__plugin_version__ = 0.6
 __plugin_author__ = "MeetWq"
 __plugin_settings__ = {
     "level": 5,
@@ -61,20 +62,24 @@ def help_image(user_id: str, memes: List[Meme]) -> BytesIO:
             texts.append(text)
         return "\n".join(texts)
 
-    text1 = "摸头等头像相关表情制作\n触发方式：指令 + @某人 / qq号 / 自己 / [图片]\n支持的指令："
-    idx = math.ceil(len(memes) / 2)
-    text2 = cmd_text(memes[:idx])
-    text3 = cmd_text(memes[idx:], start=idx + 1)
-    img1 = Text2Image.from_text(text1, 30, weight="bold").to_image(padding=(20, 10))
-    img2 = Text2Image.from_bbcode_text(text2, 30).to_image(padding=(20, 10))
-    img3 = Text2Image.from_bbcode_text(text3, 30).to_image(padding=(20, 10))
-    w = max(img1.width, img2.width + img3.width)
-    h = img1.height + max(img2.height, img2.height)
-    img = BuildImage.new("RGBA", (w, h), "white")
-    img.paste(img1, alpha=True)
-    img.paste(img2, (0, img1.height), alpha=True)
-    img.paste(img3, (img2.width, img1.height), alpha=True)
-    return img.save_jpg()
+    head_text = "摸头等头像相关表情制作\n触发方式：指令 + @某人 / qq号 / 自己 / [图片]\n支持的指令："
+    head = Text2Image.from_text(head_text, 30, weight="bold").to_image(padding=(20, 10))
+    imgs: List[IMG] = []
+    col_num = 3
+    num_per_col = math.ceil(len(memes) / col_num)
+    for idx in range(0, len(memes), num_per_col):
+        text = cmd_text(memes[idx : idx + num_per_col], start=idx + 1)
+        imgs.append(Text2Image.from_bbcode_text(text, 30).to_image(padding=(20, 10)))
+    w = max(sum((img.width for img in imgs)), head.width)
+    h = head.height + max((img.height for img in imgs))
+    frame = BuildImage.new("RGBA", (w, h), "white")
+    frame.paste(head, alpha=True)
+    current_w = 0
+    for img in imgs:
+        frame.paste(img, (current_w, head.height), alpha=True)
+        current_w += img.width
+    return frame.save_jpg()
+
 
 
 def get_user_id():

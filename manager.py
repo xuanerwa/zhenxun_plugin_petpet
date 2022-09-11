@@ -4,13 +4,13 @@ from enum import IntEnum
 from pathlib import Path
 from pydantic import BaseModel
 from typing import Dict, List, Any, Optional
-
+from configs.path_config import DATA_PATH
 from nonebot.log import logger
 
 from .utils import Meme
 from .data_source import memes
 
-data_path = Path() / "data" / "petpet"
+data_path = DATA_PATH / "petpet"
 
 
 class MemeMode(IntEnum):
