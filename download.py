@@ -1,4 +1,6 @@
 import json
+
+from configs.config import Config
 from utils.http_utils import AsyncHttpx
 import hashlib
 import asyncio
@@ -37,7 +39,8 @@ async def download_avatar(user_id: str) -> bytes:
 
 
 def resource_url(path: str) -> str:
-    return f"https://ghproxy.com/https://raw.githubusercontent.com/noneplugin/nonebot-plugin-petpet/v0.3.x/resources/{path}"
+    petpet_resource_url = Config.get_config("zhenxun_plugin_petpet", "petpet_resource_url")
+    return f"{petpet_resource_url}/{path}"
 
 
 async def download_resource(path: str) -> bytes:

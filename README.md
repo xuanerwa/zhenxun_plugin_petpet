@@ -18,6 +18,11 @@ zhenxun_bot 头像表情包插件
 
 ### 更新
 
+**2022/10/23**[v0.7]
+
+1. 更新到原仓库最新版本
+2. 添加配置，在configs/config.yaml 里的zhenxun_plugin_petpet
+
 **2022/9/12**[v0.6]
 
 1. 更新到原仓库最新版本

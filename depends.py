@@ -6,7 +6,7 @@ from typing import List, Optional
 from nonebot.rule import Rule
 from nonebot import get_driver
 from nonebot.typing import T_State
-from nonebot.params import State, Depends
+from nonebot.params import Depends
 from nonebot.adapters.onebot.v11 import (
     Bot,
     Message,
@@ -27,18 +27,23 @@ SENDER_KEY = "SENDER"
 ARGS_KEY = "ARGS"
 REGEX_DICT = "REGEX_DICT"
 REGEX_ARG = "REGEX_ARG"
+petpet_command_start: str = ""
+command_start =petpet_command_start or "|".join(
+    get_driver().config.command_start
+)
 
 
 def regex(pattern: str) -> Rule:
-    def checker(event: MessageEvent, state: T_State = State()) -> bool:
+    def checker(event: MessageEvent, state: T_State) -> bool:
         msg = event.get_message()
         msg_seg: MessageSegment = msg[0]
         if not msg_seg.is_text():
             return False
 
         seg_text = str(msg_seg).lstrip()
-        start = "|".join(get_driver().config.command_start)
-        matched = re.match(rf"(?:{start})(?:{pattern})", seg_text, re.IGNORECASE)
+        matched = re.match(
+            rf"(?:{command_start})(?:{pattern})", seg_text, re.IGNORECASE
+        )
         if not matched:
             return False
 
@@ -60,7 +65,7 @@ def is_qq(msg: str):
 
 
 def split_msg():
-    def dependency(event: MessageEvent, state: T_State = State()):
+    def dependency(event: MessageEvent, state: T_State):
         def _is_at_me_seg(segment: MessageSegment):
             return segment.type == "at" and str(segment.data.get("qq", "")) == str(
                 event.self_id
@@ -69,7 +74,7 @@ def split_msg():
         msg: Message = state["REGEX_ARG"]
 
         if event.to_me:
-            raw_msg = Message(event.raw_message)
+            raw_msg = event.original_message
             i = -1
             last_msg_seg = raw_msg[i]
             if (
@@ -160,7 +165,7 @@ async def download_image(user: UserInfo):
 
 
 def Users(min_num: int = 1, max_num: int = 1):
-    async def dependency(bot: Bot, state: T_State = State()):
+    async def dependency(bot: Bot, state: T_State):
         users: List[UserInfo] = state[USERS_KEY]
         if len(users) > max_num or len(users) < min_num:
             return
@@ -174,7 +179,7 @@ def Users(min_num: int = 1, max_num: int = 1):
 
 
 def User():
-    async def dependency(users: Optional[List[UserInfo]] = Users()):
+    def dependency(users: Optional[List[UserInfo]] = Users()):
         if users:
             return users[0]
 
@@ -182,7 +187,7 @@ def User():
 
 
 def UserImgs(min_num: int = 1, max_num: int = 1):
-    async def dependency(state: T_State = State()):
+    async def dependency(state: T_State):
         users: List[UserInfo] = state[USERS_KEY]
         if len(users) > max_num or len(users) < min_num:
             return
@@ -195,7 +200,7 @@ def UserImgs(min_num: int = 1, max_num: int = 1):
 
 
 def UserImg():
-    async def dependency(imgs: List[BuildImage] = UserImgs()):
+    def dependency(imgs: List[BuildImage] = UserImgs()):
         if imgs:
             return imgs[0]
 
@@ -203,7 +208,7 @@ def UserImg():
 
 
 def Sender():
-    async def dependency(bot: Bot, state: T_State = State()):
+    async def dependency(bot: Bot, state: T_State):
         sender: UserInfo = state[SENDER_KEY]
         await get_user_info(bot, sender)
         await download_image(sender)
@@ -213,7 +218,7 @@ def Sender():
 
 
 def SenderImg():
-    async def dependency(state: T_State = State()):
+    async def dependency(state: T_State):
         sender: UserInfo = state[SENDER_KEY]
         await download_image(sender)
         return sender.img
@@ -222,7 +227,7 @@ def SenderImg():
 
 
 def Args(min_num: int = 1, max_num: int = 1):
-    async def dependency(state: T_State = State()):
+    def dependency(state: T_State):
         args: List[str] = state[ARGS_KEY]
         if len(args) > max_num or len(args) < min_num:
             return
@@ -232,15 +237,18 @@ def Args(min_num: int = 1, max_num: int = 1):
 
 
 def RegexArg(key: str):
-    async def dependency(state: T_State = State()):
+    def dependency(state: T_State):
         arg: dict = state[REGEX_DICT]
         return arg.get(key, None)
 
     return Depends(dependency)
 
 
-def Arg(possible_values: List[str] = []):
-    async def dependency(args: List[str] = Args(0, 1)):
+def Arg(possible_values=None):
+    if possible_values is None:
+        possible_values = []
+
+    def dependency(args: List[str] = Args(0, 1)):
         if args:
             arg = args[0]
             if possible_values and arg not in possible_values:
@@ -253,7 +261,7 @@ def Arg(possible_values: List[str] = []):
 
 
 def NoArg():
-    async def dependency(args: List[str] = Args(0, 0)):
+    def dependency(args: List[str] = Args(0, 0)):
         return
 
     return Depends(dependency)

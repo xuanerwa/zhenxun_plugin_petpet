@@ -1,5 +1,7 @@
-from .utils import Meme
+from typing import List
 from .functions import *
+
+petpet_disabled_list: List[str] = []
 
 memes = [
     Meme("universal", universal, ("万能表情", "空白表情")),
@@ -9,11 +11,13 @@ memes = [
     Meme("play", play, ("顶", "玩")),
     Meme("pat", pat, ("拍",)),
     Meme("rip", rip, ("撕",)),
+    Meme("rip_angrily", rip_angrily, ("怒撕",)),
     Meme("throw", throw, ("丢", "扔")),
     Meme("throw_gif", throw_gif, ("抛", "掷")),
     Meme("crawl", crawl, ("爬",)),
     Meme("support", support, ("精神支柱",)),
     Meme("always", always, ("一直",)),
+    Meme("always", always_always, ("一直一直",)),
     Meme("loading", loading, ("加载中",)),
     Meme("turn", turn, ("转",)),
     Meme("littleangel", littleangel, ("小天使",)),
@@ -70,8 +74,9 @@ memes = [
     Meme("repeat", repeat, ("复读",)),
     Meme("anti_kidnap", anti_kidnap, ("防诱拐",)),
     Meme("charpic", charpic, ("字符画",)),
-    Meme("mywife", mywife, ("这是我的老婆",), r"这是(?P<ta>\S+)的(?P<name>\S+)"),
+    Meme("mywife", mywife, ("我老婆",)),
     Meme("walnutpad", walnutpad, ("胡桃平板",)),
+    Meme("walnut_zoom", walnut_zoom, ("胡桃放大",)),
     Meme("teach", teach, ("讲课", "敲黑板")),
     Meme("addition", addition, ("上瘾", "毒瘾发作")),
     Meme("gun", gun, ("手枪",)),
@@ -79,4 +84,18 @@ memes = [
     Meme("read_book", read_book, ("看书",)),
     Meme("call_110", call_110, ("遇到困难请拨打",)),
     Meme("confuse", confuse, ("迷惑",)),
+    Meme("hit_screen", hit_screen, ("打穿", "打穿屏幕"), r"打穿(?:屏幕)?"),
+    Meme("fencing", fencing, ("击剑", "🤺")),
+    Meme("hug_leg", hug_leg, ("抱大腿",)),
+    Meme("tankuku_holdsign", tankuku_holdsign, ("唐可可举牌",)),
+    Meme("no_response", no_response, ("无响应",)),
+    Meme("hold_tight", hold_tight, ("抱紧",)),
+    Meme("look_flat", look_flat, ("看扁",)),
+    Meme("look_this_icon", look_this_icon, ("看图标",)),
+    Meme("captain", captain, ("舰长",)),
+    Meme("jiji_king", jiji_king, ("急急国王",)),
+    Meme("incivilization", incivilization, ("不文明",)),
+    Meme("together", together, ("一起",)),
 ]
+
+memes = [meme for meme in memes if meme.name not in petpet_disabled_list]
